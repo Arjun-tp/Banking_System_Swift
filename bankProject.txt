@@ -1,0 +1,518 @@
+import Foundation
+
+//Parent Class: Bank
+class Bank{
+    var accountNo: Int
+    var accountName: String
+    var ifsc: String
+    var type: String
+    var pin : Int
+    var statement = [String]()
+    init(accountNo: Int, accountName: String, ifsc: String, type: String, pin: Int)
+    {
+        self.accountNo = accountNo
+        self.accountName = accountName
+        self.ifsc = ifsc
+        self.type = type
+        self.pin=pin
+        self.statement.append("\nAmount Deposited     | Credit | Amount   | Balance \n")
+    }
+
+    //method to print the account details
+    func printAccount() {
+        print(" Account No: \(self.accountNo)\n Account Name: \(self.accountName)\n IFSC: \(self.ifsc)\nType: \(self.type)")        
+    }
+}
+
+//Child Class: SavingsAccount
+class SavingsAccount: Bank{
+    var interest: Double
+    var savBalance: Double
+    init(accountNo: Int, accountName: String, ifsc: String, type: String, pin: Int, interest: Double, savBalance: Double){
+        self.interest = interest
+        self.savBalance = savBalance
+        super.init(accountNo: accountNo, accountName: accountName, ifsc: ifsc, type: type, pin: pin)
+    }
+    
+    override func printAccount() {
+        super.printAccount()
+        print(" Interest Rate: \(self.interest) \nAccount balance: \(self.savBalance)")        
+    }
+}
+
+//Child Class: CurrentAccount
+class CurrentAccount: Bank{
+    var curBalance: Double
+    
+    init(accountNo: Int, accountName: String, ifsc: String, type: String, pin: Int, curBalance: Double){
+        self.curBalance = curBalance
+        super.init(accountNo: accountNo, accountName: accountName, ifsc: ifsc, type: type, pin: pin)
+    }
+    
+    //method to print the account details
+    override func printAccount() {
+        super.printAccount()
+        print("Account balance: \(self.curBalance)")        
+    }
+}
+
+//method to find the account details by Account Number
+func findAccountByNo(requiredAccountNo: Int, clientList: [Bank]) -> Bank!{
+    //go through the array
+    for client in clientList {
+        if requiredAccountNo == client.accountNo {
+            return client
+        }
+    }
+    return nil
+}
+
+//method to validate the pin
+func checkpin(inputPin:Int, accountNoSearch: Bank)-> Bool {
+    if(accountNoSearch.pin == inputPin){
+        return true
+    }
+    else{
+        return false
+    }
+}
+
+
+//function to pay utility bills
+func payUtiliyBill(number: String, accountNoSearch: Bank){
+     print("Enter your provider :")
+     let provider = readLine()!
+     print("Enter the amount you would like to pay")
+     let amountUtility = Double(readLine()!)!
+     if(accountNoSearch is SavingsAccount){
+         if(amountUtility > (accountNoSearch as! SavingsAccount).savBalance){
+             print("Sorry, Insufficient balance to withdraw the amount!")
+         }else { 
+            (accountNoSearch as! SavingsAccount).savBalance -= amountUtility
+            print("Amount \(amountUtility) is being transfered to the provider:",provider,"for the number/id :",number)
+            print("Amount transfer Successful. New Balance is \((accountNoSearch as! SavingsAccount).savBalance)")
+            (accountNoSearch as! SavingsAccount).statement.append("Utility Bill Paid    | Debit | \(amountUtility) | \((accountNoSearch as! SavingsAccount).savBalance) \n")
+         }
+     } else{
+         if(amountUtility > (accountNoSearch as! CurrentAccount).curBalance){
+             print("Sorry, Insufficient balance to withdraw the amount!") 
+         }else { 
+            (accountNoSearch as! CurrentAccount).curBalance -= amountUtility
+            print("Amount \(amountUtility) is being transfered to the provider:",provider,"for the number/id :",number)
+            print("Amount transfer Successful. New Balance is \((accountNoSearch as! CurrentAccount).curBalance)")
+            (accountNoSearch as! CurrentAccount).statement.append("Utility Bill Paid    | Debit | \(amountUtility) | \((accountNoSearch as! CurrentAccount).curBalance) \n")
+         }
+     }
+}
+
+
+
+//create an empty array of prodcuts
+var clientList = [Bank]()
+//inserting the customer details to the array (hard coded)
+clientList.append(SavingsAccount(accountNo:12345678901010, accountName:"Tony Stark", ifsc:"113BC", type:"Savings Account", pin:1234, interest:2.0, savBalance:0.0))
+clientList.append(CurrentAccount(accountNo:12345678901011, accountName:"Steve Rogers", ifsc:"113BC", type:"Current Account", pin:2345, curBalance:0.0))
+
+
+//main
+print("* Welcome to Banking System *")
+repeat{
+ print("==================================================")
+ print("==============** MAIN MENU **===============")
+ print("==================================================\n\n")
+print("Please Enter where you want to navigate to,\n1. Client \n2. Admin")
+if(readLine()! == "1"){
+    print("==================================================")
+    print("<< Welcome to the Client Portal >>")
+    print("==================================================")
+    print("Please Enter the Account Number to continue")
+    let inputAccountNo = Int(readLine()!)!
+    let accountNoSearch = findAccountByNo(requiredAccountNo:inputAccountNo, clientList: clientList)
+        if accountNoSearch == nil {
+            print("Sorry, Account Not found!!")
+        }else {
+            print("Please Enter the pin to continue")
+            let inputPin = Int(readLine()!)!
+            if !(checkpin(inputPin:inputPin, accountNoSearch :accountNoSearch!)) {
+                print("Sorry, Incorrect pin")
+            }else {
+                print("==================================================")
+                print("Account number: \(accountNoSearch!.accountNo)\tAccount name: \(accountNoSearch!.accountName)\tIFSC: \(accountNoSearch!.ifsc)")
+                
+                repeat{
+                    print("==================================================")
+                    print("=============** CLIENT MENU **==============")
+                    print("==================================================")
+                    print("Do you wish to \n1.Deposit \n2.Withdraw \n3.Check Balance \n4.Transfer to another account (this bank) \n5.Pay Utilities")
+                    print("6.Transfer to another account (other bank) \n7.Account Statement \n8.Apply for Credit Card")
+                    print("==================================================")
+                    print("Enter your choice: ")
+                    switch (readLine()!){
+                    //deposit an amount to the account
+                     case "1":
+                         print("==================================================")
+                         print("============** CASH DEPOSIT **==============")
+                         print("==================================================\n\n")
+                         print("Enter the amount you want to Deposit:")
+                         let amountDeposit = Double(readLine()!)!
+                         if( accountNoSearch is SavingsAccount){
+                            (accountNoSearch as! SavingsAccount).savBalance += amountDeposit
+                            print("\n\nDeposit Successful. New Balance is \((accountNoSearch as! SavingsAccount).savBalance)")
+                            (accountNoSearch as! SavingsAccount).statement.append("Amount Deposited     | Credit | \(amountDeposit) | \((accountNoSearch as! SavingsAccount).savBalance) \n")
+                         } else {
+                            (accountNoSearch as! CurrentAccount).curBalance += amountDeposit
+                            print("\n\nDeposit Successful. New Balance is \((accountNoSearch as! CurrentAccount).curBalance)")
+                            (accountNoSearch as! CurrentAccount).statement.append("Amount Deposited     | Credit | \(amountDeposit) | \((accountNoSearch as! CurrentAccount).curBalance) \n")
+                         }
+                    //Withdraw an amount from the account
+                     case "2":
+                         print("==================================================")
+                         print("============** CASH WITHDRAW **=============")
+                         print("==================================================\n\n")
+                         print("Enter the amount you want to Withdraw:")
+                         let amountWithdraw = Double(readLine()!)!
+                         if (accountNoSearch is SavingsAccount){
+                             if(amountWithdraw > (accountNoSearch as! SavingsAccount).savBalance){
+                             print("\n\nSorry, Insufficient balance to withdraw the amount!")
+                             }else {
+                                 (accountNoSearch as! SavingsAccount).savBalance -= amountWithdraw
+                                 print("\n\nAmout Withdrawn Successful, New balance is \((accountNoSearch as! SavingsAccount).savBalance)")
+                                 (accountNoSearch as! SavingsAccount).statement.append("Amount Withdrawn     | Debit | \(amountWithdraw) | \((accountNoSearch as! SavingsAccount).savBalance) \n")
+                             }
+                         } else {
+                             if(amountWithdraw > (accountNoSearch as! CurrentAccount).curBalance){
+                             print("Sorry, Insufficient balance to withdraw the amount!")
+                             }else {
+                                 (accountNoSearch as! CurrentAccount).curBalance -= amountWithdraw
+                                 print("\n\nAmout Withdrawn Successful, New balance is \((accountNoSearch as! CurrentAccount).curBalance)")
+                                 (accountNoSearch as! CurrentAccount).statement.append("Amount Withdrawn     | Debit | \(amountWithdraw) | \((accountNoSearch as! CurrentAccount).curBalance) \n")
+                             }
+                         }
+                    //check balance
+                     case "3":
+                         print("==================================================")
+                         print("============** BALANCE CHECK **=============")
+                         print("==================================================\n\n")
+                        if (accountNoSearch is SavingsAccount){
+                            print("\n\nYour account balance is \((accountNoSearch as! SavingsAccount).savBalance)")
+                        } else{
+                            print("\n\nYour account balance is \((accountNoSearch as! CurrentAccount).curBalance)")
+                        }
+                    //Transfer to another account (this bank)
+                    case "4":
+                         print("==================================================")
+                         print("===========** ACCOUNT TRANSFER **=============")
+                         print("==================================================\n\n")
+                         print("\n\nPlease Enter Account Number to which you would like to transfer money to : ")
+                        let transferAccountNo = Int(readLine()!)!
+                        let transferAccountNoSearch = findAccountByNo(requiredAccountNo:transferAccountNo, clientList: clientList)
+                        if transferAccountNoSearch == nil {
+                            print("\n\nSorry, Account Not found!!")
+                        }else {
+                            print("\n\nAccount number: \(transferAccountNoSearch!.accountNo)\nAccount name: \(transferAccountNoSearch!.accountName)")
+                            print("Please confirm that this is the account number and name is as shown -- Press y to continue")
+                            if(readLine()! == "y"){
+                                print("\n\nEnter the amount that you want to transfer")
+                                let amountTransfer = Double(readLine()!)!
+                                print("\n\n")
+                                if (accountNoSearch is SavingsAccount){
+                                    if(amountTransfer > (accountNoSearch as! SavingsAccount).savBalance){
+                                        print("Sorry, Insufficient balance to withdraw the amount!")
+                                    }else { 
+                                        if (transferAccountNoSearch is SavingsAccount){
+                                            (transferAccountNoSearch as! SavingsAccount).savBalance += amountTransfer
+                                            print("Deposit Successful.")
+                                            (transferAccountNoSearch as! SavingsAccount).statement.append("Amount Transfered    | Credit | \(amountTransfer) | \((transferAccountNoSearch as! SavingsAccount).savBalance) \n")
+                                        }
+                                        else{
+                                           (transferAccountNoSearch as! CurrentAccount).curBalance += amountTransfer
+                                            print("Deposit Successful.")
+                                            (transferAccountNoSearch as! CurrentAccount).statement.append("Amount Transfered    | Credit | \(amountTransfer) | \((transferAccountNoSearch as! CurrentAccount).curBalance) \n")
+                                        }
+                                        (accountNoSearch as! SavingsAccount).savBalance -= amountTransfer
+                                        print("Amount Withdrawn Successful, New balance is \((accountNoSearch as! SavingsAccount).savBalance)")
+                                        (accountNoSearch as! SavingsAccount).statement.append("Amount Transfered    | Debit | \(amountTransfer) | \((accountNoSearch as! SavingsAccount).savBalance) \n")
+                                    }
+                                } else {
+                                    if(amountTransfer > (transferAccountNoSearch as! CurrentAccount).curBalance){
+                                        print("Sorry, Insufficient balance to withdraw the amount!")
+                                    }else { 
+                                     if (transferAccountNoSearch is SavingsAccount){
+                                        (transferAccountNoSearch as! SavingsAccount).savBalance += amountTransfer
+                                        print("Deposit Successful. ")
+                                        (transferAccountNoSearch as! SavingsAccount).statement.append("Amount Transfered    | Credit | \(amountTransfer) | \((transferAccountNoSearch as! SavingsAccount).savBalance) \n")
+                                    
+                                        }
+                                    else{
+                                       (transferAccountNoSearch as! CurrentAccount).curBalance += amountTransfer
+                                        print("Deposit Successful.")
+                                        (transferAccountNoSearch as! CurrentAccount).statement.append("Amount Transfered    | Credit | \(amountTransfer) | \((transferAccountNoSearch as! CurrentAccount).curBalance) \n")
+                                    }
+                                    (accountNoSearch as! CurrentAccount).curBalance -= amountTransfer
+                                    print("Amount Withdrawn Successful, New balance is \((accountNoSearch as! CurrentAccount).curBalance)")
+                                    (accountNoSearch as! CurrentAccount).statement.append("Amount Transfered    | Debit | \(amountTransfer) | \((accountNoSearch as! CurrentAccount).curBalance) \n")
+                                    }
+                                }
+                            }
+                            else{
+                                print("Transaction Cancelled")
+                            }
+                            
+                        }
+                    // pay utility bills
+                     case "5":
+                         print("==================================================")
+                         print("========** UTILITY BILL PAYMENTS **=========")
+                         print("==================================================\n\n")
+                        print("\n\nChoose which bill you would like to pay:")
+                         print("a)Mobile Recharge \nb)Electricity Bill \nc)Water Bill \nd)Other")
+                         var number = ""
+                         switch (readLine()!){
+                            case "a":
+                            print("\n\nEnter your number")
+                            number = readLine()!
+                            payUtiliyBill(number: number,accountNoSearch: accountNoSearch!)
+                            case "b":
+                            print("\n\nEnter your Electricity Id")
+                            number = readLine()!
+                            payUtiliyBill(number: number,accountNoSearch: accountNoSearch!)
+                            case "c":
+                            print("\n\nEnter your Water Bill Number")
+                            number = readLine()!
+                            payUtiliyBill(number: number,accountNoSearch: accountNoSearch!)
+                            case "4":
+                            print("\n\nEnter your Bill Id/ Number ")
+                            number = readLine()!
+                            payUtiliyBill(number: number,accountNoSearch: accountNoSearch!)
+                            default:
+                            print("\n\nInvalid Choice")
+                         }
+                    //Transfer to another account (another bank)
+                     case "6":
+                         print("==================================================")
+                         print("==========** ACCOUNT TRANSFER **============")
+                         print("==================================================\n\n")
+                        print("\n\nEnter Account Number to which you would like to transfer money to : ")
+                        let transferAccountNo = Int(readLine()!)!
+                        print("Account holder Name: ")
+                        let transferName = readLine()! 
+                        print("Enter IFSC code :")
+                        let transferIfsc = readLine()!
+                         print("Account number: \(transferAccountNo)\nAccount holder name: ",(transferName))
+                         print("IFSC code: \(transferIfsc)")
+                        print("Please confirm the above details  -- Press y to continue")
+                        if(readLine()! == "y"){
+                            print("Enter the amount that you want to transfer")
+                            let amountTransfer = Double(readLine()!)!
+                            if (accountNoSearch is SavingsAccount){
+                                if(amountTransfer > (accountNoSearch as! SavingsAccount).savBalance){
+                                    print("Sorry, Insufficient balance to withdraw the amount!")
+                                }else { 
+                                  (accountNoSearch as! SavingsAccount).savBalance -= amountTransfer
+                                  print("Transfer Successful.")
+                                    print("Amount Withdrawn Successful, New balance is \((accountNoSearch as! SavingsAccount).savBalance)")
+                                    (accountNoSearch as! SavingsAccount).statement.append("Amount Transfered    | Debit | \(amountTransfer) | \((accountNoSearch as! SavingsAccount).savBalance) \n")
+                                }
+                            } else {
+                                if(amountTransfer > (accountNoSearch as! CurrentAccount).curBalance){
+                                    print("Sorry, Insufficient balance to withdraw the amount!")
+                                }else { 
+                                  (accountNoSearch as! CurrentAccount).curBalance -= amountTransfer
+                                  print("Transfer Successful.")
+                                    print("Amount Withdrawn Successful, New balance is \((accountNoSearch as! CurrentAccount).curBalance)")
+                                    (accountNoSearch as! CurrentAccount).statement.append("Amount Transfered    | Debit | \(amountTransfer) | \((accountNoSearch as! CurrentAccount).curBalance) \n")
+                                }
+                            }
+                        }
+                        else{
+                            print("Transaction Cancelled")
+                        }
+                    //Account statement
+                     case "7":
+                         print("==================================================")
+                         print("==========** ACCOUNT STATEMENT **===========")
+                         print("==================================================\n\n")
+                        print("\n\nEnter Account Number to which you would like to transfer money to : ")
+                        print("Your last transactions were:")
+                        for x in accountNoSearch!.statement{
+                            print(x)
+                        }
+                    //Apply for credit card
+                     case "8":
+                         print("==================================================")
+                         print("=======** CREDIT CARD APPLICATION **========")
+                         print("==================================================\n\n")
+                        print("\n\nEnter Account Number to which you would like to transfer money to : ")
+                         print("Select the Card that you would like to apply for")
+                         print("  Card Name            | Maximum Limit | Annual Charges")
+                         print("a)Silver Credit Card   |      10,000/- | CAD 10")
+                         print("b)Gold Credit Card     |      30,000/- | CAD 25")
+                         print("c)Platinum Credit Card |      70,000/- | CAD 50")
+                         print("Please select your choice")
+                         let cardOption = readLine()!
+                         print("Your Request of option \"",cardOption,"\" have be accepted after verification")
+                      
+                     default:
+                        print("Invalid Choice")
+                    }
+                    print("\n\nWould you like to go back to the Client Menu? y or n")
+                }while(readLine()! == "y")
+            }
+        }
+    
+} else {
+   
+    print("==================================================")
+     print("<<  Welcome to Admin Portal  >>")
+    print("==================================================")
+    repeat{
+        var curBalance = 0.0
+        print("Do you wish to \n1.Create New Account \n2.Edit Account \n3.Money Transactions\n Enter your choice: ")
+        print("==================================================")
+        print("=============** ADMIN MENU **==============")
+        print("Do you wish to \n1.Create New Account \n2.Edit Account \n3.Money Transactions")
+        print("==================================================")
+        print("Enter your choice: ")
+        switch (readLine()!){
+            //Create a new Account
+            case "1":
+                 print("==================================================")
+                 print("============** CREATE ACCOUNT **============")
+                 print("==================================================\n\n")
+                print("Enter the name: ")
+                let name = readLine()!
+                print("Enter the IFSC code: ")
+                let ifsc = readLine()!
+                let acNo = Int.random(in: 10000000000000..<99999999999999) 
+                let pin = Int.random(in: 1000..<9999) 
+                
+                print("Select the account type: \n Enter S for Savings Account \n Enter C for Current Account")
+                let type = readLine()!
+                if type.lowercased() == "s"{
+                    print("Enter the amount to deposit:")
+                    let savBalance = Double(readLine()!)!
+                    clientList.append(SavingsAccount(accountNo: acNo, accountName: name, ifsc: ifsc, type: "Savings Account",pin: pin, interest: 2.0, savBalance: savBalance ))
+                } else if type.lowercased() == "c"{
+                    
+                    repeat{
+                        print("Enter the amount to deposit:")
+                        curBalance = Double(readLine()!)!
+                        if(curBalance < 10000){
+                            print("Minimum balance required for Current Account is Rs.10000")
+                        } else{
+                            clientList.append(CurrentAccount(accountNo: acNo, accountName: name, ifsc: ifsc, type: "Current Account",pin:pin, curBalance: curBalance))
+                        }
+                    }while(curBalance < 10000.0)
+                }
+                print("Account created successfully!")
+                print("Account No.: \(acNo)\t PIN: \(pin)\t Name: \(name)\t IFSC: \(ifsc)\t")
+                
+            //Edit an account details   
+            case "2":
+                print("==================================================")
+                 print("============** EDIT ACCOUNT **=============")
+                 print("==================================================\n\n")
+                print("Please Enter the Account Number to continue")
+                let inputAccountNo = Int(readLine()!)!
+                let accountDetails = findAccountByNo(requiredAccountNo:inputAccountNo, clientList: clientList)
+                if (accountDetails is SavingsAccount){
+                    (accountDetails as! SavingsAccount).printAccount()
+                    print("Select the field you want to edit:\n 1. Account holder's name \n 2.Interest rate")
+                    let field = readLine()!
+                    if( field == "1" ){
+                        print("Enter the account holder's name:")
+                        (accountDetails as! SavingsAccount).accountName = readLine()!
+                        print("Name changed successfully!")
+                    } else if( field == "2"){
+                        print("Enter the new interest rate:")
+                        (accountDetails as! SavingsAccount).interest = Double(readLine()!)!
+                        print("Interest rate changed successfully!")
+                    }
+                } else {
+                    (accountDetails as! CurrentAccount).printAccount()
+                    print("Select the field you want to edit:\n 1. Account holder's name")
+                    let field = readLine()!
+                    if( field == "1" ){
+                        print("Enter the account holder's name:")
+                        (accountDetails as! CurrentAccount).accountName = readLine()!
+                        print("Name changed successfully!")
+                    }
+                }
+            //Other transactions
+            case "3":
+                 print("==================================================")
+                 print("========** ACCOUNT TRANSACTIONS **==========")
+                 print("==================================================\n\n")
+                print("Please Enter the Account Number to continue")
+                let inputAccountNo = Int(readLine()!)!
+                let accountNoSearch = findAccountByNo(requiredAccountNo:inputAccountNo, clientList: clientList)
+                    if accountNoSearch == nil {
+                        print("Sorry, Account Not found!!")
+                    }else {
+                        print("Account number: \(accountNoSearch!.accountNo)\tAccount name: \(accountNoSearch!.accountName)\tIFSC: \(accountNoSearch!.ifsc)")
+                        repeat{
+                            print("Do you wish to \n1.Deposit \n2.Withdraw \n3.Check Balance ")
+                            switch (readLine()!){
+                                //deposit an amount to one account
+                                 case "1":
+                                     print("\n\n==================================================")
+                                     print("============** CASH DEPOSIT **==============")
+                                     print("==================================================\n\n")
+                                     print("Enter the amount you want to Deposit!")
+                                     let amountDeposit = Double(readLine()!)!
+                                     if( accountNoSearch is SavingsAccount){
+                                        (accountNoSearch as! SavingsAccount).savBalance += amountDeposit
+                                        print("Deposit Successful. New Balance is \((accountNoSearch as! SavingsAccount).savBalance)")
+                                     } else {
+                                        (accountNoSearch as! CurrentAccount).curBalance += amountDeposit
+                                        print("Deposit Successful. New Balance is \((accountNoSearch as! CurrentAccount).curBalance)")
+                                     }
+                                //Withdraw an amount from one account
+                                 case "2":
+                                     print("==================================================")
+                                     print("============** CASH WITHDRAW **=============")
+                                     print("==================================================\n\n")
+                                     print("Enter the amount you want to Withdraw!")
+                                     let amountWithdraw = Double(readLine()!)!
+                                     if (accountNoSearch is SavingsAccount){
+                                         if(amountWithdraw > (accountNoSearch as! SavingsAccount).savBalance){
+                                         print("Sorry, Insufficient balance to withdraw the amount!")
+                                         }else {
+                                             (accountNoSearch as! SavingsAccount).savBalance -= amountWithdraw
+                                             print("Amout Withdrawn Successful, New balance is \((accountNoSearch as! SavingsAccount).savBalance)")
+                                         }
+                                     } else {
+                                         if(amountWithdraw > (accountNoSearch as! CurrentAccount).curBalance){
+                                         print("Sorry, Insufficient balance to withdraw the amount!")
+                                         }else {
+                                             (accountNoSearch as! CurrentAccount).curBalance -= amountWithdraw
+                                             print("Amout Withdrawn Successful, New balance is \((accountNoSearch as! CurrentAccount).curBalance)")
+                                         }
+                                     }
+                                //Check the balance of an account
+                                 case "3":
+                                     print("==================================================")
+                                     print("============** BALANCE CHECK **=============")
+                                     print("==================================================\n\n")
+                                    if (accountNoSearch is SavingsAccount){
+                                        print("The account balance is \((accountNoSearch as! SavingsAccount).savBalance)")
+                                    } else{
+                                        print("The account balance is \((accountNoSearch as! CurrentAccount).curBalance)")
+                                    }
+                            
+                             default:
+                                print("Invalid Choice")
+                            }
+                            print("\n\n Do you want to continue Transaction? y or n")
+                        }while(readLine()! == "y")
+                    
+                    }
+            default:
+                print("Invalid Choice")
+        }
+        print("\n\nWould you like to go back to the Admin Menu? y or n")
+    }while(readLine()! == "y")
+    
+}
+print("\n\nWould you like to go back to Main Menu? y or n")
+}while(readLine()! == "y")
